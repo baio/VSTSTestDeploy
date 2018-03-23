@@ -38,15 +38,18 @@ let getAzureKeyVaultSecretsConfigAligned = getAzureKeyVaultSecrets2 (replace ":"
 *)
 let getConfig2 azureKeyVaultConfigName secretNames = 
 
-    let config = Config.getConfig()
-
-    let akvName = config.Item azureKeyVaultConfigName
-
-    match isNull akvName with
-    | true ->
+    if List.length secretNames = 0 then  
         rtn []
-    | false ->
-        getAzureKeyVaultSecretsConfigAligned akvName secretNames
+    else
+        let config = Config.getConfig()
+
+        let akvName = config.Item azureKeyVaultConfigName
+
+        match isNull akvName with
+        | true ->
+            rtn []
+        | false ->
+            getAzureKeyVaultSecretsConfigAligned akvName secretNames
         
 (*
     Before getting secrets from key vault will try to retrieve same secrets from settings and env
