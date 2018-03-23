@@ -38,9 +38,6 @@ let getAzureKeyVaultSecretsConfigAligned = getAzureKeyVaultSecrets2 (replace ":"
 *)
 let getConfig2 azureKeyVaultConfigName secretNames = 
     
-    exn (secretNames |> String.concat ",") |> Error |> ofResult
-
-    (*
     if List.length secretNames = 0 then  
         rtn []
     else
@@ -53,7 +50,6 @@ let getConfig2 azureKeyVaultConfigName secretNames =
             rtn []
         | false ->
             getAzureKeyVaultSecretsConfigAligned akvName secretNames
-    *)
 
 let getSecretsFromConfig (config: Microsoft.Extensions.Configuration.IConfigurationRoot) f secretNames =
     let res = secretNames |> List.map (fun x -> (x, config.Item (f x))) |> List.filter (snd >> isNull >> not)
