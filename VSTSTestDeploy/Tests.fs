@@ -50,25 +50,42 @@ let getConfig2 azureKeyVaultConfigName secretNames =
             rtn []
         | false ->
             getAzureKeyVaultSecretsConfigAligned akvName secretNames
-        
+
+let getSecretsFromConfig (config: Microsoft.Extensions.Configuration.IConfigurationRoot) f secretNames =
+    let res = secretNames |> List.map (fun x -> (x, config.Item (f x))) |> List.filter (snd >> isNull >> not)
+    res |> List.map fst, res |> List.map snd
+
 (*
-    Before getting secrets from key vault will try to retrieve same secrets from settings and env
+    Before getting secrets from key vault will try to retrieve same secrets from settings and env.
+    For config names with ':' will be processed two times, first as is and next with ':' replaced to '--'
+    For key vault in names always replace ':' with '--' 
 *)
 let getConfig azureKeyVaultConfigName secretNames = 
 
     let config = Config.getConfig()
+    
+    // get from config by the names as is
+    let n1, v1 = secretNames |> getSecretsFromConfig config id
 
-    let secrets = secretNames |> List.map (fun x -> (x, config.Item x)) |> List.filter (snd >> isNull >> not)
+    // collect not found names
+    let n2 = secretNames |> List.except n1
 
-    let foundSecretNames = secrets |> List.map fst
-    let foundSecretVals = secrets |> List.map snd
+    // get from config by the names with replaces ":" to "--"
+    let n3, v3 = n2 |> getSecretsFromConfig config (replace ":" "--")
 
-    let otherSecrets = secretNames |> List.except foundSecretNames
+    // collect all found names
+    let n4 = List.append n1 n3
 
-    List.append foundSecretVals <!> getConfig2 azureKeyVaultConfigName otherSecrets 
+    // collect all found values
+    let v4 = List.append v1 v3
+
+    // collect stil not found names
+    let n5 = secretNames |> List.except n4
+    
+    // collect all found
+    List.append v4 <!> getConfig2 azureKeyVaultConfigName n5
 
  
-    
 [<Fact>]
 let ``My test`` () =
     getConfig "azureKeyVault:name" ["auth0--audience"; "azureKeyVault:name"]
