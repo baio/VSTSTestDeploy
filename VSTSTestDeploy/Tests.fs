@@ -68,7 +68,7 @@ let getConfig azureKeyVaultConfigName secretNames =
     
 [<Fact>]
 let ``My test`` () =
-    getConfig "azureKeyVault:mame" ["auth0--audience"; "azureKeyVault:name"]
+    getConfig "azureKeyVault:name" ["auth0--audience"; "azureKeyVault:name"]
     |> map (fun x ->
         System.Diagnostics.Debug.WriteLine(sprintf "%s" x.[0])
         System.Diagnostics.Debug.WriteLine(sprintf "%s" x.[1])
