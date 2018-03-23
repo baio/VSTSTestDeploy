@@ -37,7 +37,10 @@ let getAzureKeyVaultSecretsConfigAligned = getAzureKeyVaultSecrets2 (replace ":"
     secretNames - secret names to read
 *)
 let getConfig2 azureKeyVaultConfigName secretNames = 
+    
+    exn (secretNames |> String.concat ",") |> Error |> ofResult
 
+    (*
     if List.length secretNames = 0 then  
         rtn []
     else
@@ -50,6 +53,7 @@ let getConfig2 azureKeyVaultConfigName secretNames =
             rtn []
         | false ->
             getAzureKeyVaultSecretsConfigAligned akvName secretNames
+    *)
 
 let getSecretsFromConfig (config: Microsoft.Extensions.Configuration.IConfigurationRoot) f secretNames =
     let res = secretNames |> List.map (fun x -> (x, config.Item (f x))) |> List.filter (snd >> isNull >> not)
@@ -83,12 +87,12 @@ let getConfig azureKeyVaultConfigName secretNames =
     let n5 = secretNames |> List.except n4
     
     // collect all found
-    List.append v4 <!> getConfig2 azureKeyVaultConfigName n5
+    List.append v4 <!> getConfig2 azureKeyVaultConfigName n5    
 
  
 [<Fact>]
 let ``My test`` () =
-    getConfig "azureKeyVault:name" ["auth0--audience"; "azureKeyVault:name"]
+    getConfig "azureKeyVault:name" ["auth0:audience"; "azureKeyVault:name"]
     |> map (fun x ->
         System.Diagnostics.Debug.WriteLine(sprintf "%s" x.[0])
         System.Diagnostics.Debug.WriteLine(sprintf "%s" x.[1])
